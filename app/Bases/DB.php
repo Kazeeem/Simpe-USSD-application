@@ -1,5 +1,9 @@
 <?php
-require_once('Utility.php');
+
+namespace App\Bases;
+
+use App\Utility;
+use \PDO;
 
 class DB
 {
@@ -7,7 +11,7 @@ class DB
 
     public function __construct()
     {
-        $dsn = "msql:host=".Utility::SERVER_NAME.";dbname=".Utility::DB_NAME."";
+        $dsn = "mysql:host=".Utility::SERVER_NAME.";dbname=".Utility::DB_NAME."";
         $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_EMULATE_PREPARES => false,
@@ -17,12 +21,12 @@ class DB
         try {
             $this->pdo = new PDO($dsn, Utility::DB_USER, Utility::DB_PASS, $options);
         }
-        catch (PDOException $e) {
+        catch (\PDOException $e) {
             echo $e->getMessage();
         }
     }
 
-    public function connectToDB():PDO
+    public function connectToDB()
     {
         return $this->pdo;
     }

@@ -1,11 +1,15 @@
 <?php
-require_once('Utility.php');
+
+namespace App;
+
+use App\Bases\DB;
+use App\User;
 
 class Menu
 {
-    public function mainMenuRegistered(): string
+    public function mainMenuRegistered($name): string
     {
-        $response = "CON What do you want to do? \n";
+        $response = "Hello ".ucwords($name).", what do you want to do today? \n";
         $response .= "1. Send Money\n";
         $response .= "2. Withdraw\n";
         $response .= "3. Check Balance\n";
@@ -21,7 +25,7 @@ class Menu
         return $response;
     }
 
-    public function registerMenu($textArray): string
+    public function registerMenu($textArray, $phone, $db): string
     {
         $level = count($textArray);
 
@@ -41,9 +45,26 @@ class Menu
                     return 'END Your pins do not match. Please try again.';
                 }
                 else {
-                    // Register the user
-                    // Send SMS
-                    return 'END Your registration was successful.';
+                    try {
+                        // Register the user
+                        $user = new User($phone);
+                        $registration_status = $user->setName($name)
+                            ->setPin($pin)
+                            ->setBalance(Utility::USER_INITIAL_BALANCE)
+                            ->register($db);
+
+                        if (is_string($registration_status)) {
+                            return 'END ' . $registration_status;
+                        } elseif ($registration_status) {
+                            // Send SMS
+                            return 'END Your registration was successful.';
+                        } else {
+                            return 'END Sorry, we could not process your request at this time. Please try again later.';
+                        }
+                    }
+                    catch (\Exception $e) {
+                        return "END ".$e->getMessage();
+                    }
                 }
             default:
                 return 'END Invalid request';
@@ -169,5 +190,12 @@ class Menu
         }
 
         return join("*", $textArray);
+    }
+
+    public function retainMenuForInvalidEntry($sessionId, $user, $ussd_level, $db)
+    {
+        $stmt = $db->prepare("INSERT INTO ussd_sessions (gateway_session_id, ussd_level, user_id) VALUES (?,?,?)");
+        $stmt->execute($sessionId, $ussd_level, $user->getUserId($db));
+        $stmt = null;
     }
 }
