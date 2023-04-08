@@ -1,0 +1,148 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.0
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost:8889
+-- Generation Time: Apr 08, 2023 at 07:39 AM
+-- Server version: 5.7.39
+-- PHP Version: 7.4.33
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+--
+-- Database: `test_ussd`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `agents`
+--
+
+CREATE TABLE `agents` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `name` varchar(191) NOT NULL DEFAULT '',
+  `agent_no` varchar(191) NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `agents`
+--
+
+INSERT INTO `agents` (`id`, `name`, `agent_no`) VALUES
+(1, 'Kyush Pay', 'AG-899023'),
+(2, 'Codinlamba', 'AG-394728');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `transactions`
+--
+
+CREATE TABLE `transactions` (
+  `id` int(11) NOT NULL,
+  `amount` double(8,2) NOT NULL DEFAULT '0.00',
+  `user_id` int(11) NOT NULL DEFAULT '0',
+  `agent_id` varchar(191) DEFAULT '',
+  `type` enum('credit','debit','withdrawal','none') NOT NULL DEFAULT 'none',
+  `created_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `receiver_id` int(11) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `user_id` int(11) NOT NULL,
+  `name` varchar(191) NOT NULL DEFAULT '',
+  `pin` varchar(191) NOT NULL DEFAULT '',
+  `phone` varchar(191) NOT NULL,
+  `balance` double(8,2) NOT NULL DEFAULT '0.00',
+  `date_registered` datetime NOT NULL DEFAULT '0000-00-00 00:00:00'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ussd_sessions`
+--
+
+CREATE TABLE `ussd_sessions` (
+  `id` int(11) NOT NULL,
+  `gateway_session_id` varchar(191) NOT NULL,
+  `ussd_level` int(11) NOT NULL DEFAULT '0',
+  `completed` tinyint(1) NOT NULL DEFAULT '0',
+  `user_id` int(11) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `agents`
+--
+ALTER TABLE `agents`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `agent_no` (`agent_no`);
+
+--
+-- Indexes for table `transactions`
+--
+ALTER TABLE `transactions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `agent_id` (`agent_id`),
+  ADD KEY `type` (`type`),
+  ADD KEY `receiver_id` (`receiver_id`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`user_id`),
+  ADD UNIQUE KEY `phone` (`phone`);
+
+--
+-- Indexes for table `ussd_sessions`
+--
+ALTER TABLE `ussd_sessions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `completed` (`completed`),
+  ADD KEY `gateway_session_id` (`gateway_session_id`),
+  ADD KEY `ussd_level` (`ussd_level`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `agents`
+--
+ALTER TABLE `agents`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `transactions`
+--
+ALTER TABLE `transactions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `ussd_sessions`
+--
+ALTER TABLE `ussd_sessions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+COMMIT;

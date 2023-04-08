@@ -144,7 +144,7 @@ class Menu
         }
     }
 
-    public function withdrawMoneyMenu($textArray): string
+    public function withdrawMoneyMenu($textArray, $user, $db): string
     {
         $level = count($textArray);
 
@@ -152,11 +152,25 @@ class Menu
             case 1:
                 return "CON Enter agent number:";
             case 2:
+                $agent = new Agent($textArray[1]);
+                $agent_name = $agent->getAgentName($db);
+
+                if (!$agent_name) {
+                    return "END Invalid agent number.";
+                }
+
                 return "CON Enter amount:";
             case 3:
                 return "CON Enter your PIN:";
             case 4:
-                $response = "CON Confirm withrawal of ".$textArray[2]." from agent ".$textArray[1]."\n";
+                $user->setPin($textArray[3]);
+
+                if (!$user->correctPin($db)) {
+                    // Send SMS
+                    return "END Incorrect PIN";
+                }
+
+                $response = "CON Confirm withrawal of ".number_format($textArray[2])." from agent ".ucwords($agent_name)."\n";
                 $response .= "1. Confirm\n";
                 $response .= "2. Cancel";
 
@@ -164,7 +178,28 @@ class Menu
             case 5:
                 if ($textArray[4] == 1) { // User confirms withdrawal
                     // Logic to process withdrawal.
-                    return "END Your withdrawal is being processed. You will receive your money soon.";
+                    $agent_no = $textArray[1];
+                    $amount = $textArray[2];
+
+                    $balance = $user->checkBalance($db);
+
+                    if (($amount + Utility::TRANSACTION_FEE) > $balance) {
+                        return "END Insufficient balance. Your available balance is ".number_format($balance);
+                    }
+
+                    $new_balance = $balance - $amount - Utility::TRANSACTION_FEE;
+
+                    $transaction = new Transaction($amount);
+                    $agent = new Agent($agent_no);
+
+                    $result = $transaction->withdrawCash($db, $user->getUserId($db), $agent->getAgentId($db), $new_balance);
+
+                    if (is_string($result)) {
+                        return $result;
+                    }
+
+                    // Send SMS
+                    return "END Your withdrawal of ".number_format($amount)." is being processed. You will receive your money soon.";
                 }
                 elseif ($textArray[4] == 2) {
                     return "END You have canceled the withdrawal.";

@@ -19,4 +19,5 @@ class Utility
 
     const DEBIT_TRANSACTION = "debit";
     const CREDIT_TRANSACTION = "credit";
+    const WITHDRAWAL_TRANSACTION = "withdrawal";
 }

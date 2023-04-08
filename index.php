@@ -47,7 +47,7 @@ elseif ($text && $user->isUserRegistered($db)) { // User is registered and text 
             echo $menu->sendMoneyMenu($texts, $user, $db);
             break;
         case 2:
-            echo $menu->withdrawMoneyMenu($texts);
+            echo $menu->withdrawMoneyMenu($texts, $user, $db);
             break;
         case 3:
             echo $menu->checkBalanceMenu($texts, $user, $db);
