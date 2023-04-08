@@ -20,4 +20,8 @@ class Utility
     const DEBIT_TRANSACTION = "debit";
     const CREDIT_TRANSACTION = "credit";
     const WITHDRAWAL_TRANSACTION = "withdrawal";
+
+    const SEND_SMS = false; // Set this to true if you want to send SMS.
+    const API_USERNAME = "sandbox";
+    const COMPANY_NAME = "KyushPay";
 }

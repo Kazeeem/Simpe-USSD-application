@@ -54,7 +54,12 @@ class Menu
                         if (is_string($registration_status)) {
                             return 'END ' . $registration_status;
                         } elseif ($registration_status) {
-                            // Send SMS
+                            if (Utility::SEND_SMS) { // Send SMS
+                                $sms = new Sms($phone);
+                                $message = "Dear " . $name . ",\nWe warmly welcome you to ".Utility::COMPANY_NAME.".\nYour registration was successful.";
+                                $sms->sendSMS($message);
+                            }
+
                             return 'END Your registration was successful.';
                         } else {
                             return 'END Sorry, we could not process your request at this time. Please try again later.';
@@ -112,7 +117,6 @@ class Menu
                     $receiver_balance = $receiver->checkBalance($db) + $amount;
 
                     if (!$sender->correctPin($db)) {
-                        // Send SMS
                         return "END Incorrect PIN";
                     }
 
@@ -123,7 +127,12 @@ class Menu
                         return $result;
                     }
                     else {
-                        // Send SMS
+                        if (Utility::SEND_SMS) { // Send SMS
+                            $sms = new Sms($sender->getPhone());
+                            $message = "Dear " . $sender->getName() . ",\nYour money transfer is being processed. Your new account balance at this moment is " . number_format($sender_balance) . "\nThank you for choosing " . Utility::COMPANY_NAME;
+                            $sms->sendSMS($message);
+                        }
+
                         return "END Your transaction is being processed. You will receive an SMS shortly.";
                     }
                 }
@@ -166,9 +175,11 @@ class Menu
                 $user->setPin($textArray[3]);
 
                 if (!$user->correctPin($db)) {
-                    // Send SMS
                     return "END Incorrect PIN";
                 }
+
+                $agent = new Agent($textArray[1]);
+                $agent_name = $agent->getAgentName($db);
 
                 $response = "CON Confirm withrawal of ".number_format($textArray[2])." from agent ".ucwords($agent_name)."\n";
                 $response .= "1. Confirm\n";
@@ -198,7 +209,12 @@ class Menu
                         return $result;
                     }
 
-                    // Send SMS
+                    if (Utility::SEND_SMS) { // Send SMS
+                        $sms = new Sms($user->getPhone());
+                        $message = "Dear " . $user->getName() . ",\nYour withdrawal is being processed. Your new account balance at this moment is " . number_format($new_balance) . "\nThank you for choosing " . Utility::COMPANY_NAME;
+                        $sms->sendSMS($message);
+                    }
+
                     return "END Your withdrawal of ".number_format($amount)." is being processed. You will receive your money soon.";
                 }
                 elseif ($textArray[4] == 2) {
@@ -224,12 +240,18 @@ class Menu
                 $user->setPin($textArray[1]);
 
                 if (!$user->correctPin($db)) {
-                    // Send SMS
                     return "END Incorrect PIN";
                 }
 
-                // Send SMS
-                return "END Your wallet balance is NGN ".number_format($user->checkBalance($db));
+                $balance = $user->checkBalance($db);
+
+                if (Utility::SEND_SMS) { // Send SMS
+                    $sms = new Sms($user->getPhone());
+                    $message = "Dear " . $user->getName() . ",\nYour account balance at this moment is " . number_format($balance) . "\nThank you for choosing " . Utility::COMPANY_NAME;
+                    $sms->sendSMS($message);
+                }
+
+                return "END Your wallet balance is NGN ".number_format($balance);
             default:
                 return "END Invalid request";
         }

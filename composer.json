@@ -3,5 +3,8 @@
         "psr-4": {
             "App\\": "app"
         }
+    },
+    "require": {
+        "africastalking/africastalking": "^3.0"
     }
 }
