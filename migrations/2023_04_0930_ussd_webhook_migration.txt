@@ -1,0 +1,15 @@
+CREATE TABLE `webhook_notifications`(
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `date` VARCHAR(191) NULL,
+    `session_id` VARCHAR(191) NULL,
+    `service_code` VARCHAR(191) NULL,
+    `network_code` VARCHAR(191) NULL,
+    `phone` VARCHAR(20) NULL,
+    `status` VARCHAR(30) NULL,
+    `cost` VARCHAR(20) NULL,
+    `duration_milliseconds` VARCHAR(100) NULL,
+    `input` VARCHAR(191) NULL,
+    `last_response` VARCHAR(191) NULL,
+    `error_message` VARCHAR(191) NULL,
+    PRIMARY KEY(`id`)
+) ENGINE = InnoDB;
