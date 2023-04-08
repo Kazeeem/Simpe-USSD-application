@@ -32,7 +32,7 @@ class User extends BaseUser
         }
     }
 
-    public function isUserRegistered($pdo)
+    public function isUserRegistered($pdo): bool
     {
         $stmt = $pdo->prepare("SELECT user_id FROM users WHERE phone=?");
         $stmt->execute([$this->getPhone()]);
@@ -53,7 +53,7 @@ class User extends BaseUser
         return $row['user_id'];
     }
 
-    public function getUserName($pdo)
+    public function getUserName($pdo): string
     {
         $stmt = $pdo->prepare("SELECT name FROM users WHERE phone=?");
         $stmt->execute([$this->getPhone()]);
@@ -62,17 +62,29 @@ class User extends BaseUser
         return $row['name'];
     }
 
-    public function correctPin($pdo)
+    public function correctPin($pdo): bool
     {
         $stmt = $pdo->prepare("SELECT pin FROM users WHERE phone=?");
         $stmt->execute([$this->getPhone()]);
         $row = $stmt->fetch();
 
-        return $row['pin'];
+        if (!$row) {
+            return false;
+        }
+
+        if (password_verify($this->getPin(), $row['pin'])) {
+            return true;
+        }
+
+        return false;
     }
 
-    public function checkBalance($pdo)
+    public function checkBalance($pdo): float
     {
+        $stmt = $pdo->prepare("SELECT balance FROM users WHERE phone=?");
+        $stmt->execute([$this->getPhone()]);
+        $row = $stmt->fetch();
 
+        return $row['balance'];
     }
 }

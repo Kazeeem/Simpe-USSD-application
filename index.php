@@ -4,6 +4,9 @@
  *
  * This script is meant for Africastalking.com USSD Gateway.
  *
+ * Things to Fix, error handling. (For example, if a registered user sends the wrong input on the menu that asks whether the user wants to send money, withdraw, etc.
+ * Then if the user enters the correct options the second time, subsequent option/inputs the user fills do not happen, it returns the "Invalid option" message.
+ * Area of focus is the "menuMiddleware"
  */
 
 require_once('vendor/autoload.php');
@@ -26,7 +29,7 @@ $pdo = new DB();
 $db = $pdo->connectToDB();
 
 // Start of USSD application menu logic
-$text = $menu->menuMiddleware($text);
+$text = $menu->menuMiddleware($text, $sessionId, $db);
 
 $isRegistered = true;
 
@@ -41,7 +44,7 @@ elseif ($text && $user->isUserRegistered($db)) { // User is registered and text 
 
     switch($texts[0]) {
         case 1:
-            echo $menu->sendMoneyMenu($texts);
+            echo $menu->sendMoneyMenu($texts, $user, $db);
             break;
         case 2:
             echo $menu->withdrawMoneyMenu($texts);
@@ -51,7 +54,7 @@ elseif ($text && $user->isUserRegistered($db)) { // User is registered and text 
             break;
         default:
             $ussd_level = count($texts) - 1;
-            $menu->retainMenuForInvalidEntry($sessionId, $user, $ussd_level, $db);
+            $menu->recordTheStageInvalidOptionWasEntered($sessionId, $ussd_level, $db);
             echo "CON Invalid option\n". $menu->mainMenuRegistered($user->getUserName($db));
     }
 }
@@ -62,6 +65,7 @@ elseif ($text && !$user->isUserRegistered($db)) { // User is not registered and 
         echo $menu->registerMenu($texts, $phoneNumber, $db);
     }
     else {
-        echo "END Invalid request.";
+        $ussd_level = count($texts) - 1;
+        echo "CON Invalid option\n". $menu->mainMenuUnregistered();
     }
 }

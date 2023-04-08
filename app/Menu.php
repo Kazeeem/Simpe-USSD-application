@@ -2,8 +2,6 @@
 
 namespace App;
 
-use App\Bases\DB;
-use App\User;
 
 class Menu
 {
@@ -71,9 +69,12 @@ class Menu
         }
     }
 
-    public function sendMoneyMenu($textArray)
+    public function sendMoneyMenu($textArray, $sender, $db)
     {
         $level = count($textArray);
+        $receiver = null;
+        $receiver_name = null;
+        $response = "";
 
         switch ($level) {
             case 1: // Cold
@@ -83,7 +84,13 @@ class Menu
             case 3: // Replied
                 return 'CON Enter your PIN:';
             case 4: // Interested
-                $response = "CON Send ".number_format($textArray[2])." to ".$textArray[1]."\n";
+                $receiver_phone = $textArray[1];
+                $receiver_mobile_with_country_code = $this->addCountryCodeToPhone($receiver_phone);
+
+                $receiver = new User($receiver_mobile_with_country_code);
+                $receiver_name = $receiver->getUserName($db);
+
+                $response .= "CON Send ".number_format($textArray[2])." to ".ucwords($receiver_name)." - ".$receiver_phone."\n";
                 $response .= "1. Confirm\n";
                 $response .= "2. Cancel\n";
                 $response .= Utility::GO_BACK." Back\n";
@@ -93,7 +100,32 @@ class Menu
             case 5:
                 if ($textArray[4] == 1) { // Confirm
                     // Logic for sending the money.
-                    return "END Your transaction is being processed.";
+                    $pin = $textArray[3];
+                    $amount = $textArray[2];
+                    $sender->setPin($pin);
+                    $sender_balance = $sender->checkBalance($db) - $amount - Utility::TRANSACTION_FEE;
+
+                    $receiver_phone = $textArray[1];
+                    $receiver_mobile_with_country_code = $this->addCountryCodeToPhone($receiver_phone);
+
+                    $receiver = new User($receiver_mobile_with_country_code);
+                    $receiver_balance = $receiver->checkBalance($db) + $amount;
+
+                    if (!$sender->correctPin($db)) {
+                        // Send SMS
+                        return "END Incorrect PIN";
+                    }
+
+                    $transaction = new Transaction($amount);
+                    $result = $transaction->sendMoney($db, $sender->getUserId($db), $receiver->getUserId($db), $sender_balance, $receiver_balance);
+
+                    if (is_string($result)) {
+                        return $result;
+                    }
+                    else {
+                        // Send SMS
+                        return "END Your transaction is being processed.";
+                    }
                 }
                 elseif ($textArray[4] == 2) { // Cancel
                     return "END You have cancelled the transaction. Thank you for using our service.";
@@ -160,10 +192,10 @@ class Menu
         }
     }
 
-    public function menuMiddleware($text):string
+    public function menuMiddleware($text, $session_id, $pdo):string
     {
         // Remove entries for going back and going to the main menu
-        return $this->goBack($this->goToMainMenu($text));
+        return $this->removeInvalidContentFromMessage($this->goBack($this->goToMainMenu($text)), $session_id, $pdo);
     }
 
     public function goBack($text):string
@@ -192,10 +224,39 @@ class Menu
         return join("*", $textArray);
     }
 
-    public function retainMenuForInvalidEntry($sessionId, $user, $ussd_level, $db)
+    public function recordTheStageInvalidOptionWasEntered($sessionId, $ussd_level, $pdo): void
     {
-        $stmt = $db->prepare("INSERT INTO ussd_sessions (gateway_session_id, ussd_level, user_id) VALUES (?,?,?)");
-        $stmt->execute($sessionId, $ussd_level, $user->getUserId($db));
+        $stmt = $pdo->prepare("INSERT INTO ussd_sessions (gateway_session_id, ussd_level) VALUES (?,?)");
+        $stmt->execute([$sessionId, $ussd_level]);
         $stmt = null;
+    }
+
+    public function removeInvalidContentFromMessage($ussd_string, $session_id, $pdo): string
+    {
+        $stmt = $pdo->prepare("SELECT ussd_level FROM ussd_sessions WHERE gateway_session_id=?");
+        $stmt->execute([$session_id]);
+        $result = $stmt->fetchAll();
+
+        if (count($result) == 0) { // If there was no wrong option chosen, there won't be any record in this table.
+            return $ussd_string;
+        }
+
+        $array_of_inputs = explode("*", $ussd_string);
+
+        // Remove the unwanted value from the string
+        if (count($array_of_inputs) > 1) {
+            foreach ($result as $value) {
+                unset($array_of_inputs[$value['ussd_level']]);
+            }
+        }
+
+        $array_of_inputs = array_values($array_of_inputs);
+
+        return join("*", $array_of_inputs);
+    }
+
+    public function addCountryCodeToPhone($phone): string
+    {
+        return Utility::COUNTRY_CODE.substr($phone, 1);
     }
 }
