@@ -50,7 +50,7 @@ elseif ($text && $user->isUserRegistered($db)) { // User is registered and text 
             echo $menu->withdrawMoneyMenu($texts);
             break;
         case 3:
-            echo $menu->checkBalanceMenu($texts);
+            echo $menu->checkBalanceMenu($texts, $user, $db);
             break;
         default:
             $ussd_level = count($texts) - 1;

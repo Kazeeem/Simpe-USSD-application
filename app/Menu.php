@@ -124,7 +124,7 @@ class Menu
                     }
                     else {
                         // Send SMS
-                        return "END Your transaction is being processed.";
+                        return "END Your transaction is being processed. You will receive an SMS shortly.";
                     }
                 }
                 elseif ($textArray[4] == 2) { // Cancel
@@ -177,7 +177,7 @@ class Menu
         }
     }
 
-    public function checkBalanceMenu($textArray)
+    public function checkBalanceMenu($textArray, $user, $db)
     {
         $level = count($textArray);
 
@@ -186,7 +186,15 @@ class Menu
                 return "CON Enter your PIN:";
             case 2:
                 // Process the request
-                return "END Your balance check was successful. You will receive an SMS shortly.";
+                $user->setPin($textArray[1]);
+
+                if (!$user->correctPin($db)) {
+                    // Send SMS
+                    return "END Incorrect PIN";
+                }
+
+                // Send SMS
+                return "END Your wallet balance is NGN ".number_format($user->checkBalance($db));
             default:
                 return "END Invalid request";
         }
