@@ -20,5 +20,9 @@ _P.S: CODE PERFECTION WAS NOT THE GOAL OF THIS PROJECT BUT RATHER FULL FOCUS ON 
   - text
 - Every menu option chosen should be typed into the text field. For menus that have sub-menus, separate the options or inputs with asterisks (*)
 
+- Here is an example of the request of a registered user who wants to check his/her account balance.
+
 <img width="1007" alt="Screenshot 2023-04-08 at 9 01 47 AM" src="https://user-images.githubusercontent.com/35298707/230710751-152d3895-8d44-4e82-92f4-217393ab44d0.png">
 <img width="1061" alt="Screenshot 2023-04-08 at 9 05 12 AM" src="https://user-images.githubusercontent.com/35298707/230710858-1824638c-a1cb-4771-b911-32c66cbe05ae.png">
+<img width="687" alt="Screenshot 2023-04-08 at 9 07 14 AM" src="https://user-images.githubusercontent.com/35298707/230710958-b61d90c5-d8a5-4621-b4c4-4b546389fa88.png">
+<img width="852" alt="Screenshot 2023-04-08 at 9 07 37 AM" src="https://user-images.githubusercontent.com/35298707/230710971-093256a6-3594-437e-87e9-be1655cc15ed.png">
